@@ -1,0 +1,31 @@
+# docker-compose.yml
+version: "3.8" # Use a recent stable version
+
+services:
+  db:
+    image: postgres:15 # Specify a PostgreSQL version (e.g., 15 or 16) for stability
+    container_name: train_booking_postgres
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres} # Use env var from .env or default to 'postgres'
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme} # Use env var or default. CHANGE THIS DEFAULT!
+      POSTGRES_DB: ${DB_DATABASE:-train_booking_db} # Use env var or default db name
+      PGDATA: /var/lib/postgresql/data/pgdata # Explicitly set data directory
+    ports:
+      - "${DB_PORT:-5432}:5432" # Map host port (from .env or default 5432) to container port 5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/pgdata # Named volume for data persistence
+      - ./init-db:/docker-entrypoint-initdb.d # Mount local init scripts directory
+    restart: unless-stopped # Restart policy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${DB_USER:-postgres} -d ${DB_DATABASE:-train_booking_db}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data: # Define the named volume for persistence
+    driver: local
