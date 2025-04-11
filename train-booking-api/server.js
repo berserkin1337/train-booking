@@ -13,25 +13,17 @@ const PORT = process.env.PORT || 5001;
 // --- Middleware ---
 
 const allowedOrigins = [
- 'https://train-booking-pied.vercel.app',
- 'http://localhost:3000' 
+  'https://train-booking-pied.vercel.app',
+  'http://localhost:3000'
 ];
 
 const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests) or requests from allowed origins
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true, // If you need to handle cookies or authorization headers
+  origin: allowedOrigins,
+  credentials: true,
+  optionsSuccessStatus: 200
 };
 
 app.use(cors(corsOptions));
-// Make sure options requests are handled if you have complex headers/methods
-app.options('*', cors(corsOptions));
 // Parse JSON request bodies
 app.use(express.json());
 

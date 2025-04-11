@@ -6,6 +6,8 @@ const authenticateToken = require('../middleware/authenticateToken'); // Import 
 
 // Protect the booking creation route
 router.post('/', authenticateToken, bookingController.createBooking);
+// // Reset all bookings (ADMIN LEVEL ACTION - requires authentication for now)
+router.delete('/reset', authenticateToken, bookingController.resetAllBookings);
 
 
 module.exports = router;

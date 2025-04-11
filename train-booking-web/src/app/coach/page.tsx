@@ -105,6 +105,7 @@ export default function CoachPage() {
             isBookingLoading={isBookingLoading}
             bookingError={bookingError}
             bookingSuccess={bookingSuccess}
+            onResetSuccess={refetchSeats}
           />
         )}
       </div>

@@ -118,3 +118,49 @@ exports.createBooking = async (req, res) => {
     console.log("Database client released.");
   }
 };
+
+exports.resetAllBookings = async (req, res) => {
+  // ** SECURITY TODO: Implement proper role-based authorization here! **
+  // For now, any authenticated user can call this. In production, check req.user for admin role.
+  // Example placeholder:
+  // if (!req.user || !req.user.isAdmin) { // Assuming isAdmin property exists after auth middleware enhancement
+  //   return res.status(403).json({ error: 'Forbidden: Administrator privileges required.' });
+  // }
+
+  console.warn(`⚠️ WARNING: User ${req.user?.userId} (${req.user?.email}) initiated booking reset.`);
+
+  const client = await pool.connect(); // Get a client from the pool
+
+  try {
+    console.log('   Reset: Starting database transaction...');
+    await client.query('BEGIN'); // Start transaction
+
+    // Use TRUNCATE for efficiency and resetting IDs
+    console.log('   Reset: Truncating "bookings" and "booked_seats" tables...');
+    await client.query('TRUNCATE TABLE bookings, booked_seats RESTART IDENTITY CASCADE');
+    // CASCADE is important if other tables might reference bookings (though none defined currently)
+    console.log('     Reset: Tables truncated successfully.');
+
+    console.log('   Reset: Committing transaction...');
+    await client.query('COMMIT'); // Commit the transaction
+
+    console.log(`✅ Reset: Booking data successfully reset by user ${req.user?.userId}.`);
+    // Use 204 No Content for successful DELETE with no body, or 200 with a message
+    res.status(200).json({ success: true, message: 'All bookings have been reset successfully.' });
+
+  } catch (error) {
+    console.error('❌ Reset: Error during booking reset! Rolling back changes.', error);
+    try {
+      await client.query('ROLLBACK'); // Rollback on error
+      console.log('   Reset: Transaction rolled back successfully.');
+    } catch (rollbackError) {
+      console.error('   Reset: Failed to rollback transaction:', rollbackError);
+    }
+    res.status(500).json({ error: 'Internal server error during booking reset.' });
+  } finally {
+    console.log('   Reset: Releasing database client...');
+    if (client) {
+        client.release(); // Release the client back to the pool
+    }
+  }
+};
