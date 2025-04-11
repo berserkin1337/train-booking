@@ -1,5 +1,3 @@
--- init-db/init.sql
-
 -- Ensure script stops on error
 \set ON_ERROR_STOP on
 
@@ -35,14 +33,4 @@ CREATE TABLE IF NOT EXISTS booked_seats (
 CREATE INDEX IF NOT EXISTS idx_booked_seats_location ON booked_seats(seat_row, seat_number);
 CREATE INDEX IF NOT EXISTS idx_bookings_user_id ON bookings(user_id);
 
--- Grant privileges (optional but good practice if using a non-superuser for the app)
--- If your app will connect as the 'postgres' user (or the one defined by POSTGRES_USER),
--- it usually has sufficient privileges by default on the database it created (POSTGRES_DB).
--- If you create a separate application user later, you'd grant permissions like this:
--- GRANT ALL PRIVILEGES ON TABLE users TO my_app_user;
--- GRANT ALL PRIVILEGES ON TABLE bookings TO my_app_user;
--- GRANT ALL PRIVILEGES ON TABLE booked_seats TO my_app_user;
--- GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO my_app_user; -- For SERIAL columns
-
--- Notify that the script finished
 \echo 'Database initialization script completed.'

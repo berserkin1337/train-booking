@@ -5,11 +5,9 @@ const { hashPassword, comparePassword, generateToken } = require('../utils/authU
 exports.signup = async (req, res) => {
   const { email, password } = req.body;
 
-  // Basic validation
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password are required' });
   }
-  // Add more robust validation (email format, password complexity) here if needed
 
   try {
     // Check if user already exists
@@ -29,7 +27,6 @@ exports.signup = async (req, res) => {
 
     const newUser = result.rows[0];
 
-    // Generate JWT (optional: log user in immediately after signup)
     const token = generateToken(newUser.id, newUser.email);
 
     res.status(201).json({

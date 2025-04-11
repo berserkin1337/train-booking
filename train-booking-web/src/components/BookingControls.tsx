@@ -1,4 +1,3 @@
-// src/components/BookingControls.tsx
 "use client";
 
 import React, { useState, ChangeEvent, FormEvent } from "react";
@@ -21,46 +20,55 @@ const BookingControls: React.FC<BookingControlsProps> = ({
   bookingError,
   bookingSuccess,
 }) => {
-  const [numSeats, setNumSeats] = useState<number>(1);
+  const [numSeats, setNumSeats] = useState<string>("1");
   const [inputError, setInputError] = useState<string | null>(null);
 
   const handleNumSeatsChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value, 10);
+    const inputValue = e.target.value;
     setInputError(null); // Clear previous input errors on change
 
-    if (isNaN(value)) {
-      setNumSeats(1); // Reset or handle as needed
+    // Handle empty input
+    if (inputValue === "") {
+      setNumSeats("");
+      setInputError("Number of seats cannot be empty");
       return;
     }
 
+    const value = parseInt(inputValue, 10);
+
+    // Handle invalid number
+    if (isNaN(value)) {
+      setInputError("Please enter a valid number");
+      return;
+    }
+
+    // Allow typing any number but set error if out of range
+    setNumSeats(inputValue);
+
     if (value < 1) {
-      setInputError("Number of seats must be at least 1.");
-      setNumSeats(1);
+      setInputError("Number of seats must be at least 1");
     } else if (value > MAX_SEATS_PER_BOOKING) {
       setInputError(
-        `You can book a maximum of ${MAX_SEATS_PER_BOOKING} seats at a time.`
+        `Maximum ${MAX_SEATS_PER_BOOKING} seats allowed per booking`
       );
-      setNumSeats(MAX_SEATS_PER_BOOKING);
     } else if (value > availableSeatCount) {
-      setInputError(`Only ${availableSeatCount} seat(s) available.`);
-      // Optionally clamp to available count, or just show error
-      setNumSeats(availableSeatCount > 0 ? availableSeatCount : 1);
-    } else {
-      setNumSeats(value);
+      setInputError(`Only ${availableSeatCount} seat(s) available`);
     }
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setInputError(null); // Clear input error before submitting
+    setInputError(null);
 
-    if (numSeats < 1 || numSeats > MAX_SEATS_PER_BOOKING) {
+    const seats = parseInt(numSeats, 10);
+
+    if (isNaN(seats) || seats < 1 || seats > MAX_SEATS_PER_BOOKING) {
       setInputError(
         `Please enter a number between 1 and ${MAX_SEATS_PER_BOOKING}.`
       );
       return;
     }
-    if (numSeats > availableSeatCount) {
+    if (seats > availableSeatCount) {
       setInputError(
         `Not enough seats available (${availableSeatCount} left). Please request fewer seats.`
       );
@@ -68,9 +76,7 @@ const BookingControls: React.FC<BookingControlsProps> = ({
     }
 
     if (!isBookingLoading) {
-      await onBookSeats(numSeats);
-      // Reset input after successful booking? Or let parent handle it.
-      // setNumSeats(1); // Example: reset after attempt
+      await onBookSeats(seats);
     }
   };
 
@@ -80,7 +86,6 @@ const BookingControls: React.FC<BookingControlsProps> = ({
         Book Your Seats
       </h3>
 
-      {/* Display Booking Success/Error Messages */}
       {bookingSuccess && (
         <div className="mb-4 p-3 bg-green-100 text-green-800 border border-green-300 rounded">
           {bookingSuccess}
@@ -107,7 +112,8 @@ const BookingControls: React.FC<BookingControlsProps> = ({
             value={numSeats}
             onChange={handleNumSeatsChange}
             min="1"
-            max={MAX_SEATS_PER_BOOKING} // Max per single request
+            max={Math.min(MAX_SEATS_PER_BOOKING, availableSeatCount)}
+            step="1"
             required
             className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
               inputError

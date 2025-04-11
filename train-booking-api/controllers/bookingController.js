@@ -1,33 +1,24 @@
 // controllers/bookingController.js
 const { pool } = require('../config/db'); // Need pool for transactions
 
-// --- Coach Layout Configuration (can be imported from a shared config file) ---
 const TOTAL_SEATS = 80;
 const SEATS_PER_ROW = 7;
 const LAST_ROW_SEATS = 3;
 const FULL_ROWS = Math.floor((TOTAL_SEATS - LAST_ROW_SEATS) / SEATS_PER_ROW); // 11
 const TOTAL_ROWS = FULL_ROWS + 1; // 12
-// --- End Configuration ---
 
 exports.createBooking = async (req, res) => {
   const { numSeats } = req.body;
-  const userId = req.user.userId; // Get userId from authenticated user (set by middleware)
-
-  // --- Input Validation ---
+  const userId = req.user.userId;
   if (!numSeats || typeof numSeats !== 'number' || numSeats < 1 || numSeats > 7) {
     return res.status(400).json({ error: 'Invalid number of seats requested (must be between 1 and 7).' });
   }
 
-  // --- Database Transaction ---
   const client = await pool.connect(); // Get a client from the pool
 
   try {
     await client.query('BEGIN'); // Start transaction
 
-    // 1. Get Currently Booked Seats (Lock potentially needed rows if high concurrency expected)
-    // For moderate load, the UNIQUE constraint on booked_seats might be sufficient.
-    // For higher concurrency, consider SELECT ... FOR UPDATE or FOR SHARE on relevant rows if needed,
-    // but this adds complexity. We'll rely on the UNIQUE constraint for now.
     const bookedResult = await client.query('SELECT seat_row, seat_number, seat_label FROM booked_seats');
     const bookedSeatLabels = new Set(bookedResult.rows.map(seat => seat.seat_label));
 
@@ -122,7 +113,7 @@ exports.createBooking = async (req, res) => {
 
     res.status(500).json({ error: 'Internal server error during booking process.' });
   } finally {
-    // VERY IMPORTANT: Release the client back to the pool
+    //  Release the client back to the pool
     client.release();
     console.log("Database client released.");
   }

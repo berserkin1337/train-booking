@@ -7,7 +7,6 @@ const SEATS_PER_ROW = 7;
 const LAST_ROW_SEATS = 3;
 const FULL_ROWS = Math.floor((TOTAL_SEATS - LAST_ROW_SEATS) / SEATS_PER_ROW); // 11
 const TOTAL_ROWS = FULL_ROWS + 1; // 12
-// --- End Configuration ---
 
 exports.getSeatStatus = async (req, res) => {
   try {
